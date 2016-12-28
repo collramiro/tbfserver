@@ -4,6 +4,10 @@ Parse.Cloud.define('hello', function(req, res) {
 });
 
 
+Parse.Cloud.define('hello2', function(req, res) {
+	res.success('Hi Ramiro2');
+});
+
 Parse.Cloud.define("testCreate", function(request, response) {
 	var Rate = Parse.Object.extend("Rate");
 	var rate = new Rate();
