@@ -3,6 +3,27 @@ Parse.Cloud.define('hello', function(req, res) {
 	res.success('Hi Ramiro');
 });
 
+
+Parse.Cloud.define("testCreate", function(request, response) {
+	var Rate = Parse.Object.extend("Rate");
+	var rate = new Rate();
+
+	rate.set("videoObjectId", "testObjectId");
+	rate.set("userObjectId", "userObjectId");
+
+	rate.save(null, {
+		success: function(rate) {
+    // Execute any logic that should take place after the object is saved.
+    response.success('New rate created with objectId: ' + rate.id);
+},
+error: function(rate, error) {
+    // Execute any logic that should take place if the save fails.
+    // error is a Parse.Error with an error code and message.
+    response.error('Failed to create new rate, with error code: ' + error.message);
+}
+});
+});
+
 Parse.Cloud.define("rateVideo", function(request, response) {
 	var query = new Parse.Query("Rate");
 	query.equalTo("videoObjectId", request.params.videoObjectId);
