@@ -35,7 +35,7 @@ Parse.Cloud.define("rateVideo", function(request, response) {
 	query.first({
 		success: function(object) {
 	// Successfully retrieved the object.
-	response.success("Already rated");
+	response.success(object);
 },
 error: function(error) {
 	var Rate = Parse.Object.extend("Rate");
