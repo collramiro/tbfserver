@@ -3,38 +3,38 @@ Parse.Cloud.define('hello', function(req, res) {
 	res.success('Hi Ramiro');
 });
 
-Parse.Cloud.define("rateVideo", function(request, response) {
-	var query = new Parse.Query("Rate");
+Parse.Cloud.define("likeVideo", function(request, response) {
+	var query = new Parse.Query("Like");
 	query.equalTo("videoObjectId", request.params.videoObjectId);
 	query.equalTo("userObjectId", request.params.userObjectId);
 
 	query.find({
 		success: function(results) {
 			if (results.length > 0) {
-				var rate = results[0];
-				response.success('Already Rated: ' + rate.id);
+				var like = results[0];
+				response.success('Already Liked: ' + like.id);
 			} else {
-				var Rate = Parse.Object.extend("Rate");
-				var rate = new Rate();
+				var Like = Parse.Object.extend("Like");
+				var like = new Like();
 
 				var User = Parse.Object.extend("_User");
 				var user = new User();
 				user.id = request.params.userObjectId;
-				rate.set("user", user);
-				rate.set("userObjectId", user.id);
+				like.set("user", user);
+				like.set("userObjectId", user.id);
 
 				var Video = Parse.Object.extend("Video");
 				var video = new Video();
 				video.id = request.params.videoObjectId;
-				rate.set("video", video);
-				rate.set("videoObjectId", video.id);
+				like.set("video", video);
+				like.set("videoObjectId", video.id);
 
-				rate.save(null, {
-					success: function(rate) {
-						response.success('New rate created with objectId: ' + rate.id);
+				like.save(null, {
+					success: function(like) {
+						response.success('New like created with objectId: ' + like.id);
 					},
-					error: function(rate, error) {
-						response.error('Failed to create new rate, with error code: ' + error.message);
+					error: function(like, error) {
+						response.error('Failed to create new like, with error code: ' + error.message);
 					}
 				});
 			};
@@ -45,29 +45,54 @@ Parse.Cloud.define("rateVideo", function(request, response) {
 	});
 });
 
-
-Parse.Cloud.define("unrateVideo", function(request, response) {
-	var query = new Parse.Query("Rate");
+Parse.Cloud.define("unlikeVideo", function(request, response) {
+	var query = new Parse.Query("Like");
 	query.equalTo("videoObjectId", request.params.videoObjectId);
 	query.equalTo("userObjectId", request.params.userObjectId);
 	query.find({
 		success: function(results) {
 			if (results.length > 0) {
-				var rate = results[0];
-				rate.destroy({
-					success: function(rate) {
-						response.success('Rate removed with objectId: ' + rate.id);
+				var like = results[0];
+				like.destroy({
+					success: function(like) {
+						response.success('Like removed with objectId: ' + like.id);
 					},
-					error: function(rate, error) {
-						response.error('Failed to remove rate, with error code: ' + error.message);
+					error: function(like, error) {
+						response.error('Failed to remove like, with error code: ' + error.message);
 					}
 				});
 			} else {
-				response.error("Not found rate object");
+				response.error("Not found like object");
 			};
 		},
 		error: function(error) {
 			response.error("Error: " + error.code + " " + error.message);
 		}
 	});
+});
+
+Parse.Cloud.afterSave("Like", function(request) {
+  query = new Parse.Query("Video");
+  query.get(request.object.get("video").id, {
+    success: function(video) {
+      video.increment("likes");
+      video.save();
+    },
+    error: function(error) {
+      console.error("Got an error " + error.code + " : " + error.message);
+    }
+  });
+});
+
+Parse.Cloud.afterDelete("Like", function(request) {
+  query = new Parse.Query("Video");
+  query.get(request.object.get("video").id, {
+    success: function(video) {
+      video.increment("likes", -1);
+      video.save();
+    },
+    error: function(error) {
+      console.error("Got an error " + error.code + " : " + error.message);
+    }
+  });
 });
