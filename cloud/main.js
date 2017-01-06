@@ -79,6 +79,18 @@ Parse.Cloud.afterSave("Like", function(request) {
 			relation.add(request.object);
 			video.increment("likes");
 			video.save();
+
+			query = new Parse.Query("_User");
+			query.get(request.object.get("user").id, {
+				success: function(user) {
+					var relation = user.relation("likedVideos");
+					relation.add(request.object);
+					user.save();
+				},
+				error: function(error) {
+					console.error("Got an error " + error.code + " : " + error.message);
+				}
+			});
 		},
 		error: function(error) {
 			console.error("Got an error " + error.code + " : " + error.message);
@@ -94,6 +106,18 @@ Parse.Cloud.afterDelete("Like", function(request) {
 			relation.remove(request.object);
 			video.increment("likes", -1);
 			video.save();
+
+			query = new Parse.Query("_User");
+			query.get(request.object.get("user").id, {
+				success: function(user) {
+					var relation = user.relation("likedVideos");
+					relation.remove(request.object);
+					user.save();
+				},
+				error: function(error) {
+					console.error("Got an error " + error.code + " : " + error.message);
+				}
+			});
 		},
 		error: function(error) {
 			console.error("Got an error " + error.code + " : " + error.message);
@@ -190,6 +214,22 @@ Parse.Cloud.define("reportComment", function(request, response) {
 
 				report.save(null, {
 					success: function(report) {
+						query = new Parse.Query("Comment");
+						query.get(request.object.get("comment").id, {
+							success: function(comment) {
+								var relation = comment.relation("reportsRelations");
+								relation.add(request.object);
+								comment.increment("reports");
+								var reports = comment.get("reports");
+								if (reports > 2) {
+									comment.set("blocked", true);
+								};
+								comment.save();
+							},
+							error: function(error) {
+								console.error("Got an error " + error.code + " : " + error.message);
+							}
+						});
 						response.success('New report created with objectId: ' + report.id);
 					},
 					error: function(report, error) {
@@ -205,20 +245,5 @@ Parse.Cloud.define("reportComment", function(request, response) {
 });
 
 Parse.Cloud.afterSave("CommentReport", function(request) {
-	query = new Parse.Query("Comment");
-	query.get(request.object.get("comment").id, {
-		success: function(comment) {
-			var relation = comment.relation("reportsRelations");
-			relation.add(request.object);
-			comment.increment("reports");
-			var reports = comment.get("reports");
-			if (reports > 2) {
-				comment.set("blocked", true);
-			};
-			comment.save();
-		},
-		error: function(error) {
-			console.error("Got an error " + error.code + " : " + error.message);
-		}
-	});
+
 });
