@@ -85,7 +85,7 @@ Parse.Cloud.afterSave("Like", function(request) {
 				success: function(user) {
 					var relation = user.relation("likedVideos");
 					relation.add(request.object);
-					user.save();
+					user.save(null, {useMasterKey:true});
 				},
 				error: function(error) {
 					console.error("Got an error " + error.code + " : " + error.message);
@@ -112,7 +112,7 @@ Parse.Cloud.afterDelete("Like", function(request) {
 				success: function(user) {
 					var relation = user.relation("likedVideos");
 					relation.remove(request.object);
-					user.save();
+					user.save(null, {useMasterKey:true});
 				},
 				error: function(error) {
 					console.error("Got an error " + error.code + " : " + error.message);
