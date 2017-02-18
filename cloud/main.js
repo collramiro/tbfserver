@@ -494,3 +494,125 @@ Parse.Cloud.job("rankFighters", function(request, status) {
 		status.error("There was an error");
 	});
 });
+
+Parse.Cloud.define("followFighter", function(request, response) {
+	var query = new Parse.Query("Follow");
+	query.equalTo("fighterObjectId", request.params.fighterObjectId);
+	query.equalTo("userObjectId", request.params.userObjectId);
+
+	query.find({
+		success: function(results) {
+			if (results.length > 0) {
+				var follow = results[0];
+				response.success('Already Followed: ' + follow.id);
+			} else {
+				var Follow = Parse.Object.extend("Follow");
+				var follow = new Follow();
+
+				var User = Parse.Object.extend("_User");
+				var user = new User();
+				user.id = request.params.userObjectId;
+				follow.set("user", user);
+				follow.set("userObjectId", user.id);
+
+				var Fighter = Parse.Object.extend("Fighter");
+				var fighter = new Fighter();
+				fighter.id = request.params.fighterObjectId;
+				follow.set("fighter", fighter);
+				follow.set("fighterObjectId", fighter.id);
+
+				follow.save(null, {
+					success: function(follow) {
+						response.success('New follow created with objectId: ' + follow.id);
+					},
+					error: function(follow, error) {
+						response.error('Failed to create new follow, with error code: ' + error.message);
+					}
+				});
+			};
+		},
+		error: function(error) {
+			alert("Error: " + error.code + " " + error.message);
+		}
+	});
+});
+
+Parse.Cloud.define("unfollowFighter", function(request, response) {
+	var query = new Parse.Query("Follow");
+	query.equalTo("fighterObjectId", request.params.fighterObjectId);
+	query.equalTo("userObjectId", request.params.userObjectId);
+	query.find({
+		success: function(results) {
+			if (results.length > 0) {
+				var follow = results[0];
+				follow.destroy({
+					success: function(follow) {
+						response.success('Follow removed with objectId: ' + follow.id);
+					},
+					error: function(follow, error) {
+						response.error('Failed to remove follow, with error code: ' + error.message);
+					}
+				});
+			} else {
+				response.error("Not found follow object");
+			};
+		},
+		error: function(error) {
+			response.error("Error: " + error.code + " " + error.message);
+		}
+	});
+});
+
+Parse.Cloud.afterSave("Follow", function(request) {
+	var Fighter = Parse.Object.extend("Fighter");
+	var fighter = new Fighter();
+
+	query = new Parse.Query("Fighter");
+
+	query.get(request.object.get("fighter").id).then(function(fighterResult){
+		fighter = fighterResult;
+		var relation = fighter.relation("followsRelations");
+		relation.add(request.object);
+		fighter.increment("follows");
+		return fighter.save();
+	}).then(function(savedFighter) {
+		query = new Parse.Query("_User");
+		return query.get(request.object.get("user").id);
+	}).then(function(user) {
+		var relation = user.relation("followedRelations");
+		relation.add(request.object);
+		user.increment("followeds");
+		return user.save(null, {useMasterKey:true});
+	}).then(function(result) {
+
+	}, function(error) {
+		console.error("Got an error " + error.code + " : " + error.message);
+	});
+});
+
+Parse.Cloud.afterDelete("Follow", function(request) {
+	var Fighter = Parse.Object.extend("Fighter");
+	var fighter = new Fighter();
+
+	query = new Parse.Query("Fighter");
+
+	query.get(request.object.get("fighter").id).then(function(fighterResult){
+		fighter = fighterResult;
+		var relation = fighter.relation("followsRelations");
+		relation.remove(request.object);
+		fighter.increment("follows", -1);
+		return fighter.save();
+	}).then(function(savedFighter) {
+		query = new Parse.Query("_User");
+		return query.get(request.object.get("user").id);
+	}).then(function(user) {
+		var relation = user.relation("followedRelations");
+		relation.remove(request.object);
+		user.increment("followeds", -1);
+		return user.save(null, {useMasterKey:true});
+	}).then(function(result) {
+
+	}, function(error) {
+		console.error("Got an error " + error.code + " : " + error.message);
+	});
+});
