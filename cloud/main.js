@@ -623,7 +623,7 @@ Parse.Cloud.define("getUserFeed", function(request, response) {
 
 	query.find().then(function(followsResult){
 		if (followsResult.length == 0) {
-			response.error("Error: " + error.code + " " + "The user is not following to any user.");
+			response.error('The user is not following to any user.');
 		} else {
 			var Fighter = Parse.Object.extend("Fighter");
 			var fighters = [];
@@ -646,6 +646,8 @@ Parse.Cloud.define("getUserFeed", function(request, response) {
 			var videoQuery = new Parse.Query("Video");
 			videoQuery.containedIn("fighter", fighters);
 			videoQuery.include("fighter");
+			videoQuery.include("uploadedBy");
+			query.descending("createdAt");
 			return videoQuery.find();
 		}
 	}).then(function(videoResult){
