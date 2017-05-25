@@ -637,7 +637,6 @@ Parse.Cloud.define("getUserFeed", function(request, response) {
 				fighters.push(fighter);
 				fighter = {};
 			}*/
-
 			for (index = 0; index < followsResult.length; ++index) {
 				var currentFollow = followsResult[index];
 				fighters.push(currentFollow.get("fighter"));
