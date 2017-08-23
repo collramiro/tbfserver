@@ -12,7 +12,7 @@ if (!databaseUri) {
 }
 
 var pushConfig = {
- apiKey: 'AIzaSyCsRia6AlcrGfLVVxy2pfShr0N4a6wWEdw'
+ apiKey: 'AIzaSyCsRia6AlcrGfLVVxy2pfShr0N4a6wWEdw',
  senderId: '277280317328'
 };
 
