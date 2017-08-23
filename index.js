@@ -11,10 +11,10 @@ if (!databaseUri) {
   console.log('DATABASE_URI not specified, falling back to localhost.');
 }
 
-var pushConfig = {
+/*var pushConfig = {
  apiKey: 'AIzaSyCsRia6AlcrGfLVVxy2pfShr0N4a6wWEdw',
  senderId: '277280317328'
-};
+};*/
 
 /*if (process.env.GCM_SENDER_ID && process.env.GCM_API_KEY) {
     pushConfig['android'] = {
