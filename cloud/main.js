@@ -520,9 +520,16 @@ Parse.Cloud.define("followFighter", function(request, response) {
 				fighter.id = request.params.fighterObjectId;
 				follow.set("fighter", fighter);
 				follow.set("fighterObjectId", fighter.id);
-
+				var pushQuery = new Parse.Query(Parse.Installation);
 				follow.save(null, {
 					success: function(follow) {
+						/*Parse.Push.send({
+							where: pushQuery,
+							data: { 
+								"title": "Ant-man",
+								"alert": "This is awesome. It is awesome."
+							}
+						}, { useMasterKey: true });*/
 						response.success('New follow created with objectId: ' + follow.id);
 					},
 					error: function(follow, error) {
@@ -536,6 +543,31 @@ Parse.Cloud.define("followFighter", function(request, response) {
 		}
 	});
 });
+
+Parse.Cloud.define('pingReply', function(request, response) {
+	var params = request.params;
+	var customData = params.customData;
+  
+	if (!customData) {
+	  response.error("Missing customData!")
+	}
+  
+	var sender = JSON.parse(customData).sender;
+	var query = new Parse.Query(Parse.Installation);
+	query.equalTo("installationId", sender);
+  
+	Parse.Push.send({
+	where: query,
+	// Parse.Push requires a dictionary, not a string.
+	data: {"alert": "The Giants scored!"},
+	}, { success: function() {
+	   console.log("#### PUSH OK");
+	}, error: function(error) {
+	   console.log("#### PUSH ERROR" + error.message);
+	}, useMasterKey: true});
+  
+	response.success('success');
+  });
 
 Parse.Cloud.define("unfollowFighter", function(request, response) {
 	var query = new Parse.Query("Follow");
