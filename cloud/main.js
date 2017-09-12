@@ -121,11 +121,24 @@ Parse.Cloud.define("likeVideo", function(request, response) {
 				video.id = request.params.videoObjectId;
 				like.set("video", video);
 				like.set("videoObjectId", video.id);
-
+						
 				like.save(null, {
 					success: function(like) {
 						response.success('New like created with objectId: ' + like.id);
-						
+						//SEND PUSH
+						var query = new Parse.Query(Parse.Installation);
+						query.equalTo("objectId", user.installationObjectId);
+						Parse.Push.send({
+						where: query,
+						// Parse.Push requires a dictionary, not a string.
+						data: {
+						"alert": "A " + user.name + " le a gustado el video que has subido"
+						},
+						}, { success: function() {
+		 		  		console.log("#### PUSH OK");
+						}, error: function(error) {
+		  			 	console.log("#### PUSH ERROR" + error.message);
+						}, useMasterKey: true});	
 					},
 					error: function(like, error) {
 						response.error('Failed to create new like, with error code: ' + error.message);
@@ -188,22 +201,10 @@ Parse.Cloud.afterSave("Like", function(request) {
 		var relation = user.relation("likedVideos");
 		relation.add(request.object);
 		user.increment("likes");
+		
 		return user.save(null, {useMasterKey:true});
 	}).then(function(result) {
-		//SEND PUSH
-		var query = new Parse.Query(Parse.Installation);
-		query.equalTo("objectId", user.installationObjectId);
-		Parse.Push.send({
-		where: query,
-		// Parse.Push requires a dictionary, not a string.
-		data: {
-			"alert": "A " + user.name + " le a gustado el video que has subido"
-		},
-		}, { success: function() {
-		   console.log("#### PUSH OK");
-		}, error: function(error) {
-		   console.log("#### PUSH ERROR" + error.message);
-		}, useMasterKey: true});
+	
 	}, function(error) {
 		console.error("Got an error " + error.code + " : " + error.message);
 	});
