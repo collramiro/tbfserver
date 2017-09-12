@@ -125,6 +125,7 @@ Parse.Cloud.define("likeVideo", function(request, response) {
 				like.save(null, {
 					success: function(like) {
 						response.success('New like created with objectId: ' + like.id);
+						
 					},
 					error: function(like, error) {
 						response.error('Failed to create new like, with error code: ' + error.message);
@@ -189,7 +190,20 @@ Parse.Cloud.afterSave("Like", function(request) {
 		user.increment("likes");
 		return user.save(null, {useMasterKey:true});
 	}).then(function(result) {
-
+		//SEND PUSH
+		var query = new Parse.Query(Parse.Installation);
+		query.equalTo("objectId", user.installationObjectId);
+		Parse.Push.send({
+		where: query,
+		// Parse.Push requires a dictionary, not a string.
+		data: {
+			"alert": "A " + user.name + " le a gustado el video que has subido"
+		},
+		}, { success: function() {
+		   console.log("#### PUSH OK");
+		}, error: function(error) {
+		   console.log("#### PUSH ERROR" + error.message);
+		}, useMasterKey: true});
 	}, function(error) {
 		console.error("Got an error " + error.code + " : " + error.message);
 	});
@@ -555,15 +569,6 @@ Parse.Cloud.define('pingReply', function(request, response) {
 	var sender = JSON.parse(customData).sender;
 	var query = new Parse.Query(Parse.Installation);
 	query.equalTo("objectId", sender);
-	/*Parse.Push.send({
-		where: { 
-			"deviceType": { "$in": [  "android"  ]  }     
-		},
-		data: { 
-			"title": "Ant-man",
-			"alert": "This is awesome. It is awesome."
-		}
-	}, { useMasterKey: true });*/
 	Parse.Push.send({
 	where: query,
 	// Parse.Push requires a dictionary, not a string.
