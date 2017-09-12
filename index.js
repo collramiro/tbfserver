@@ -31,7 +31,7 @@ var api = new ParseServer({
   push: {
     android: {
       senderId: '277280317328',
-      apiKey: 'AIzaSyCsRia6AlcrGfLVVxy2pfShr0N4a6wWEdw'
+      apiKey: 'AAAAQI8x35A:APA91bEJpd1xjjGha3T0gPn16EXULPxNscqGUhPcfr_SvWNXj8hxx_fst07v6IUb8y7bqxVhN1IxLVwNitY9mkfqGjvjFITo-wphxkPn9D1LObtXebYaXy4sSCXmMm3eEX5fqIIIVnsT'
     }
   },
   //push: pushConfig,

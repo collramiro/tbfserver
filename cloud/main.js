@@ -555,7 +555,7 @@ Parse.Cloud.define('pingReply', function(request, response) {
 	var sender = JSON.parse(customData).sender;
 	var query = new Parse.Query(Parse.Installation);
 	query.equalTo("objectId", sender);
-	Parse.Push.send({
+	/*Parse.Push.send({
 		where: { 
 			"deviceType": { "$in": [  "android"  ]  }     
 		},
@@ -563,7 +563,7 @@ Parse.Cloud.define('pingReply', function(request, response) {
 			"title": "Ant-man",
 			"alert": "This is awesome. It is awesome."
 		}
-	}, { useMasterKey: true });
+	}, { useMasterKey: true });*/
 	Parse.Push.send({
 	where: query,
 	// Parse.Push requires a dictionary, not a string.
